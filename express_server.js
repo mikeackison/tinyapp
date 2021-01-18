@@ -28,21 +28,18 @@ app.get("/urls", (request, response) => {
   response.render("urls_index", templateVars);
 });
 
+
+// order matters, needs to be defined BEFORE the next route.
+// routes should be ordered from most specific to least specific.
+app.get('/urls/new', (request, response) => {
+  response.render('urls_new');
+})
+
 app.get("/urls/:shortURL", (request, response) => {
   const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
   response.render("urls_show", templateVars);
 });
 
-
-// test to illustrate scoping
-// app.get('/set', (request, response) => {
-//   const a = 1;
-//   response.send(`a = ${a}`);
-// });
-
-// app.get('/fetch', (request, response) => {
-//   response.send(`a = ${a}`);
-// });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`)
