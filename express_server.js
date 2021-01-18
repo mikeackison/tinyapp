@@ -11,33 +11,37 @@ const urlDatabase = {
 
 
 // registers a handler on the root path, "/".
-app.get('/', (req, res) => {
-res.send('Hello There!');
-
+app.get('/', (request, response) => {
+response.send('Hello There!');
 });
 
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+app.get("/urls.json", (request, response) => {
+  response.json(urlDatabase);
 });
 
-app.get('/hello' ,(req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n')
+app.get('/hello' ,(request, response) => {
+  response.send('<html><body>Hello <b>World</b></body></html>\n')
 });
 
-app.get("/urls", (req, res) => {
+app.get("/urls", (request, response) => {
   const templateVars = { urls: urlDatabase };
-  res.render("urls_index", templateVars);
+  response.render("urls_index", templateVars);
+});
+
+app.get("/urls/:shortURL", (request, response) => {
+  const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
+  response.render("urls_show", templateVars);
 });
 
 
 // test to illustrate scoping
-// app.get('/set', (req, res) => {
+// app.get('/set', (request, response) => {
 //   const a = 1;
-//   res.send(`a = ${a}`);
+//   response.send(`a = ${a}`);
 // });
 
-// app.get('/fetch', (req, res) => {
-//   res.send(`a = ${a}`);
+// app.get('/fetch', (request, response) => {
+//   response.send(`a = ${a}`);
 // });
 
 app.listen(PORT, () => {
