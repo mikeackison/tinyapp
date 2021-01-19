@@ -18,12 +18,15 @@
       <h3>Create TinyURL</h3>
 
       <!-- The form tag has two attributes: action and method; action attribute tells the form which URL to submitl; method attribute tells the form which HTTP method to use when submitting the form. -->
+      <!-- form has an action attribute set to /urls -->
+      <!-- method is set to POST -->
       <form class="form-inline" action="/urls" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">Enter a URL:</label>
          <!-- name attribute identifies the data we are sending; in this case, it adds the key longURL to the data we'll be sending in the body of our POST request. -->
-          <input class="form-control" type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em">
-          <button type="submit" class="btn btn-primary">Submit</button>
+         <input class="form-control" type="text" name="longURL" placeholder="http://" style="width: 300px; margin: 1em">
+         <button type="submit" class="btn btn-primary">Submit</button>
+    
         </div>
       </form>
     </main>
