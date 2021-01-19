@@ -1,8 +1,10 @@
-const express = require('express');
-const app = express();
 const PORT = 8080; //default port *be sure old test is not running anymore!
+const express = require('express');
+const morgan = require('morgan');
 
+const app = express();
 app.set("view engine", "ejs");
+app.use(morgan('dev'));
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -79,6 +81,18 @@ app.post("/urls", (request, response) => {
 });
 
 
+// to delete memes
+app.post("/urls/:shortURL/delete", (request, response) => {
+
+  const urlToDelete = request.params.shortURL;
+  delete urlDatabase[urlToDelete]
+  response.redirect('/urls/')
+  // response.send("ok delete test")
+
+
+});
+
+
 app.get("/u/:shortURL", (request, response) => {
   console.log('request.params.shortURL',request.params.shortURL)
 
@@ -86,6 +100,9 @@ app.get("/u/:shortURL", (request, response) => {
   
   response.redirect(longURL);
 });
+
+
+
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
