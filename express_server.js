@@ -35,6 +35,9 @@ app.get('/hello' ,(request, response) => {
   response.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
+
+// when we cal response.render we need to specify the template, and the object of the variables
+// this is server side rendering
 app.get("/urls", (request, response) => {
   const templateVars = { urls: urlDatabase };
   response.render("urls_index", templateVars);
@@ -51,6 +54,11 @@ app.get('/urls/new', (request, response) => {
 app.get("/urls/:shortURL", (request, response) => {
   const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
   response.render("urls_show", templateVars);
+
+  
+  // console.log('request.params', request.params)
+  // console.log('request.params.shortURL', request.params.shortURL)
+  // console.log('urlDatabase[request.params.shortURL]', urlDatabase[request.params.shortURL])
 });
 
 
@@ -58,22 +66,29 @@ app.get("/urls/:shortURL", (request, response) => {
 // receives a POST request to /urls it responds with a redirection to 
 // /urls/:shortURL, where shortURL is the random string we generated.
 
-
 app.post("/urls", (request, response) => {
   console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
 
   urlDatabase[shortURL] = request.body.longURL;
   console.log(urlDatabase);
- 
+  console.log('request.body.longURL', request.body.longURL)
 
-  const templateVars = { shortURL: shortURL, longURL: request.body.longURL };
-  response.render('urls_show', templateVars)
-  
+  // need to redirect
+  response.redirect(`/urls/${shortURL}`)
 });
 
+
+app.get("/u/:shortURL", (request, response) => {
+  console.log('request.params.shortURL',request.params.shortURL)
+
+  const longURL = urlDatabase[request.params.shortURL]
+  
+  response.redirect(longURL);
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 
 });
+
