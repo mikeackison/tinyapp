@@ -55,6 +55,10 @@ app.get("/urls/:shortURL", (request, response) => {
 
 app.post("/urls", (request, response) => {
   console.log(request.body);  // Log the POST request body to the console
+  let shortURL = generateRandomString()
+  console.log("shortURL", shortURL)
+  urlDatabase[shortURL] = request.body.longURL
+  console.log(urlDatabase)
   response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
