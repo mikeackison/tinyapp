@@ -10,6 +10,18 @@ const urlDatabase = {
 };
 
 
+function generateRandomString() {
+  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
+}
+
+
+// needs to come before routes
+// wlll convert the request body from a buffer into a string that we can read.
+// then add dat to the request under the key body
+
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
 // registers a handler on the root path, "/".
 app.get('/', (request, response) => {
 response.send('Hello There!');
@@ -33,11 +45,17 @@ app.get("/urls", (request, response) => {
 // routes should be ordered from most specific to least specific.
 app.get('/urls/new', (request, response) => {
   response.render('urls_new');
+  
 })
 
 app.get("/urls/:shortURL", (request, response) => {
   const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
   response.render("urls_show", templateVars);
+});
+
+app.post("/urls", (request, response) => {
+  console.log(request.body);  // Log the POST request body to the console
+  response.send("Ok");         // Respond with 'Ok' (we will replace this)
 });
 
 
