@@ -24,7 +24,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 
 // registers a handler on the root path, "/".
 app.get('/', (request, response) => {
-response.send('Hello There!');
+  response.send('Hello There!');
 });
 
 app.get("/urls.json", (request, response) => {
@@ -32,7 +32,7 @@ app.get("/urls.json", (request, response) => {
 });
 
 app.get('/hello' ,(request, response) => {
-  response.send('<html><body>Hello <b>World</b></body></html>\n')
+  response.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
 app.get("/urls", (request, response) => {
@@ -46,24 +46,34 @@ app.get("/urls", (request, response) => {
 app.get('/urls/new', (request, response) => {
   response.render('urls_new');
   
-})
+});
 
 app.get("/urls/:shortURL", (request, response) => {
   const templateVars = { shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
   response.render("urls_show", templateVars);
 });
 
+
+
+// receives a POST request to /urls it responds with a redirection to 
+// /urls/:shortURL, where shortURL is the random string we generated.
+
+
 app.post("/urls", (request, response) => {
   console.log(request.body);  // Log the POST request body to the console
-  let shortURL = generateRandomString()
-  console.log("shortURL", shortURL)
-  urlDatabase[shortURL] = request.body.longURL
-  console.log(urlDatabase)
-  response.send("Ok");         // Respond with 'Ok' (we will replace this)
+  let shortURL = generateRandomString();
+
+  urlDatabase[shortURL] = request.body.longURL;
+  console.log(urlDatabase);
+ 
+
+  const templateVars = { shortURL: shortURL, longURL: request.body.longURL };
+  response.render('urls_show', templateVars)
+  
 });
 
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`)
+  console.log(`Example app listening on port ${PORT}!`);
 
 });
