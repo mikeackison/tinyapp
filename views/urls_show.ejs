@@ -23,7 +23,7 @@
     <div class="card-footer text-muted">
       <h2> Edit</h2>
 
-      <form class="form-inline" style= "display: inline-block" action="/urls" method="POST">
+      <form class="form-inline" style= "display: inline-block" action="/urls/<%= shortURL %>" method="POST">
         <div class="form-group mb-2">
           <label for="longURL">New URL:</label>
          <!-- name attribute identifies the data we are sending; in this case, it adds the key longURL to the data we'll be sending in the body of our POST request. -->
