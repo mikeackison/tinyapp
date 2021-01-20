@@ -24,13 +24,8 @@ function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
 
-const emailLookup = (email, password) => {
-  // TODO if email exists?
-  if (email === '' || password === '') {
-    return true
 
-  } 
-  // incoming email; does the key exist?
+const emailExists = (email) => {
   for (let userId in users) {
     if(users[userId].email === email) {
       return true
@@ -38,12 +33,18 @@ const emailLookup = (email, password) => {
   }
 }
 
+const isFeildBlank = (email, password) => {
+  if (email === '' || password === '') {
+    return true
+  } 
+}
+
 
 const users = {
   "userRandomID": {
     id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-monkey-dinosaur"
+    email: "use@ex.com",
+    password: "12345678"
   },
   "user2RandomID": {
     id: "user2RandomID",
@@ -136,21 +137,41 @@ app.post("/urls/:shortURL/", (request, response) => {
   response.redirect('/urls');
 });
 
-// login & cookies
+
+
+
+
+// login & cookies OLD
 app.post("/login", (request, response) => {
+  
+  let email = request.body.email
+  let password = request.body.password
 
-  console.log(request.body);
+  if (!emailExists(email)) {
+    response.status(400).send("Email doesn't exist")
+  } else {
 
-  const username = request.body.username;
-  response.cookie("username", username);
-  // response.send(`This is your login ${username}`) //testing the page path is okay
-  response.redirect('/urls');
+    for (let user in users) {
+      if (users[user].email === email && users[user].password === password) {
+        response.cookie("user_id", users[user].id);
+        response.redirect('/urls');
+      }
+    }
+  }
+});
+
+// login page
+app.get('/login', (request, response) => {
+
+
+const templateVars = { user: users[request.cookies['user_id']]};
+response.render('login_form', templateVars)
 });
 
 // logout & cookies
 app.post("/logout", (request, response) => {
 
-  response.clearCookie("username");
+  response.clearCookie("user_id");
   response.redirect('/urls');
 });
 
@@ -173,8 +194,12 @@ app.post('/register', (request, response) => {
   const incomingID = generateRandomString();
 
 
-  if (emailLookup(incomingEmail, incomingPassword)) {
+  if (isFeildBlank(incomingEmail, incomingPassword)) {
     response.status(400).send("Invaild Entry")
+  }
+  else if (emailExists(incomingEmail)) {
+    response.status(400).send("Email already exists")
+
   } else {
 
   //add the user to the user object. 
@@ -187,7 +212,7 @@ app.post('/register', (request, response) => {
 
   users[incomingID] = newUser;
 
-  console.log(users);
+  // console.log(users);
 
   // set a user_id cookie containing the user's newly generated ID.
   const username = request.body.username;
@@ -205,21 +230,3 @@ app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
 
-
-
-
-
-
-
-// const emailLookup = (email, password) => {
-//   // TODO if email exists?
-//   if (email === '' || password === '') {
-//     response.status(400).send('Empty string')
-//   } 
-//   // incoming email; does the key exist?
-//   for (let userId in users) {
-//     if(users[userId].email === email) {
-//       response.status(400).send('User exits')
-//     }
-//   }
-// }
