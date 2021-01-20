@@ -2,6 +2,7 @@ const PORT = 8080; //default port *be sure old test is not running anymore!
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
+const bodyParser = require("body-parser");
 
 const app = express();
 
@@ -9,6 +10,9 @@ const app = express();
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
@@ -18,6 +22,20 @@ const urlDatabase = {
 // TODO file fo helper functions
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
+}
+
+const emailLookup = (email, password) => {
+  // TODO if email exists?
+  if (email === '' || password === '') {
+    return true
+
+  } 
+  // incoming email; does the key exist?
+  for (let userId in users) {
+    if(users[userId].email === email) {
+      return true
+    }
+  }
 }
 
 
@@ -34,15 +52,6 @@ const users = {
   }
 };
 
-
-
-// needs to come before routes
-// wlll convert the request body from a buffer into a string that we can read.
-// then add dat to the request under the key body
-const bodyParser = require("body-parser");
-
-
-app.use(bodyParser.urlencoded({ extended: true }));
 
 
 // registers a handler on the root path, "/".
@@ -62,7 +71,6 @@ app.get('/hello', (request, response) => {
 // when we call response.render we need to specify the template, and the object of the variables
 // this is server side rendering
 app.get("/urls", (request, response) => {
-
   const templateVars = { urls: urlDatabase, user: users[request.cookies['user_id']] };
   response.render("urls_index", templateVars);
 });
@@ -72,8 +80,6 @@ app.get("/urls", (request, response) => {
 // order matters, needs to be defined BEFORE the next route.
 // routes should be ordered from most specific to least specific.
 app.get('/urls/new', (request, response) => {
-
-
   const templateVars = { user: users[request.cookies['user_id']]};
   response.render('urls_new', templateVars);
 
@@ -91,8 +97,6 @@ app.get("/urls/:shortURL", (request, response) => {
 app.get("/u/:shortURL", (request, response) => {
   console.log('request.params.shortURL', request.params.shortURL);
 
-  // const templateVars = { username: request.cookies["username"] };
-
   const longURL = urlDatabase[request.params.shortURL];
 
   response.redirect(longURL);
@@ -101,7 +105,6 @@ app.get("/u/:shortURL", (request, response) => {
 
 // receives a POST request to /urls it responds with a redirection to
 // /urls/:shortURL, where shortURL is the random string we generated.
-// TODO: add to anoother file, export and use here
 app.post("/urls", (request, response) => {
   console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
@@ -131,7 +134,6 @@ app.post("/urls/:shortURL/", (request, response) => {
 
   urlDatabase[shortURL] = request.body.longURL;
   response.redirect('/urls');
-
 });
 
 // login & cookies
@@ -142,7 +144,6 @@ app.post("/login", (request, response) => {
   const username = request.body.username;
   response.cookie("username", username);
   // response.send(`This is your login ${username}`) //testing the page path is okay
-
   response.redirect('/urls');
 });
 
@@ -160,20 +161,22 @@ app.get('/register', (request, response) => {
 
 });
 
+
 // register
 // add a new user object to the global users object.
 app.post('/register', (request, response) => {
+
   // form sends back body to parse
   const incomingEmail = request.body.email;
   const incomingPassword = request.body.password;
   // Generate a random user ID,
   const incomingID = generateRandomString();
 
-  // console.log(incomingEmail);
-  // console.log(incomingPassword);
-  // console.log(incomingID);
 
-  //TODO if email exists?
+  if (emailLookup(incomingEmail, incomingPassword)) {
+    response.status(400).send("Invaild Entry")
+  } else {
+
   //add the user to the user object. 
   // create new object to add
   const newUser = {
@@ -185,17 +188,38 @@ app.post('/register', (request, response) => {
   users[incomingID] = newUser;
 
   console.log(users);
+
   // set a user_id cookie containing the user's newly generated ID.
   const username = request.body.username;
-  console.log("user_id", users[incomingID])
+  // console.log("user_id", users[incomingID])
   response.cookie("user_id", incomingID);
 
   // Redirect the user to the /urls page.
   response.redirect('/urls');
+
+  }
+
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
-
 });
 
+
+
+
+
+
+
+// const emailLookup = (email, password) => {
+//   // TODO if email exists?
+//   if (email === '' || password === '') {
+//     response.status(400).send('Empty string')
+//   } 
+//   // incoming email; does the key exist?
+//   for (let userId in users) {
+//     if(users[userId].email === email) {
+//       response.status(400).send('User exits')
+//     }
+//   }
+// }
