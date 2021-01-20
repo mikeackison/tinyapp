@@ -1,35 +1,49 @@
 const PORT = 8080; //default port *be sure old test is not running anymore!
 const express = require('express');
 const morgan = require('morgan');
-const cookieParser = require('cookie-parser')
+const cookieParser = require('cookie-parser');
 
 const app = express();
 
 
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
-app.use(cookieParser())
+app.use(cookieParser());
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
 
-
+// TODO file fo helper functions
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
 
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-monkey-dinosaur"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
+};
 
 
 
 // needs to come before routes
 // wlll convert the request body from a buffer into a string that we can read.
 // then add dat to the request under the key body
-
 const bodyParser = require("body-parser");
-const { response } = require('express');
-app.use(bodyParser.urlencoded({extended: true}));
+
+
+app.use(bodyParser.urlencoded({ extended: true }));
+
 
 // registers a handler on the root path, "/".
 app.get('/', (request, response) => {
@@ -40,15 +54,16 @@ app.get("/urls.json", (request, response) => {
   response.json(urlDatabase);
 });
 
-app.get('/hello' ,(request, response) => {
+app.get('/hello', (request, response) => {
   response.send('<html><body>Hello <b>World</b></body></html>\n');
 });
 
 
-// when we cal response.render we need to specify the template, and the object of the variables
+// when we call response.render we need to specify the template, and the object of the variables
 // this is server side rendering
 app.get("/urls", (request, response) => {
-  const templateVars = { urls: urlDatabase, username: request.cookies["username"] };
+
+  const templateVars = { urls: urlDatabase, user: users[request.cookies['user_id']] };
   response.render("urls_index", templateVars);
 });
 
@@ -58,13 +73,14 @@ app.get("/urls", (request, response) => {
 // routes should be ordered from most specific to least specific.
 app.get('/urls/new', (request, response) => {
 
-  const templateVars = { username: request.cookies["username"] };
+
+  const templateVars = { user: users[request.cookies['user_id']]};
   response.render('urls_new', templateVars);
-  
+
 });
 
 app.get("/urls/:shortURL", (request, response) => {
-  const templateVars = { username: request.cookies["username"], shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
+  const templateVars = { user: users[request.cookies['user_id']], shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
 
   response.render("urls_show", templateVars);
   // console.log('request.params', request.params)
@@ -73,27 +89,19 @@ app.get("/urls/:shortURL", (request, response) => {
 });
 
 app.get("/u/:shortURL", (request, response) => {
-  console.log('request.params.shortURL',request.params.shortURL)
+  console.log('request.params.shortURL', request.params.shortURL);
 
-  const templateVars = { username: request.cookies["username"] };
+  // const templateVars = { username: request.cookies["username"] };
 
-  const longURL = urlDatabase[request.params.shortURL]
-  
+  const longURL = urlDatabase[request.params.shortURL];
+
   response.redirect(longURL);
 });
 
-// register 
-app.get('/register', (request, response) => {
-  const templateVars = { username: request.cookies["username"] };
-  // response.send("ok register test")
-  response.render("register_page", templateVars);
 
-})
-
-
-// receives a POST request to /urls it responds with a redirection to 
+// receives a POST request to /urls it responds with a redirection to
 // /urls/:shortURL, where shortURL is the random string we generated.
-
+// TODO: add to anoother file, export and use here
 app.post("/urls", (request, response) => {
   console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
@@ -103,7 +111,7 @@ app.post("/urls", (request, response) => {
   // console.log('request.body.longURL', request.body.longURL)
 
   // need to redirect
-  response.redirect(`/urls/${shortURL}`)
+  response.redirect(`/urls/${shortURL}`);
 });
 
 
@@ -111,8 +119,8 @@ app.post("/urls", (request, response) => {
 app.post("/urls/:shortURL/delete", (request, response) => {
 
   const urlToDelete = request.params.shortURL;
-  delete urlDatabase[urlToDelete]
-  response.redirect('/urls/')
+  delete urlDatabase[urlToDelete];
+  response.redirect('/urls/');
   // response.send("ok delete test")
 });
 
@@ -122,35 +130,69 @@ app.post("/urls/:shortURL/", (request, response) => {
   const shortURL = request.params.shortURL;
 
   urlDatabase[shortURL] = request.body.longURL;
-  response.redirect('/urls')
+  response.redirect('/urls');
 
 });
 
 // login & cookies
 app.post("/login", (request, response) => {
-  
-  console.log(request.body)
 
-  const username = request.body.username
-  response.cookie("username", username)
+  console.log(request.body);
+
+  const username = request.body.username;
+  response.cookie("username", username);
   // response.send(`This is your login ${username}`) //testing the page path is okay
 
-  // const templateVars = {
-  //   username: request.cookies["username"],
-  // };
-  // response.render("urls_index", templateVars);
-
-  response.redirect('/urls')
+  response.redirect('/urls');
 });
 
 // logout & cookies
 app.post("/logout", (request, response) => {
 
-  response.clearCookie("username")
-  response.redirect('/urls')
+  response.clearCookie("username");
+  response.redirect('/urls');
 });
 
+// register
+app.get('/register', (request, response) => {
+  const templateVars = { user: request.user };
+  response.render("register_page", templateVars);
 
+});
+
+// register
+// add a new user object to the global users object.
+app.post('/register', (request, response) => {
+  // form sends back body to parse
+  const incomingEmail = request.body.email;
+  const incomingPassword = request.body.password;
+  // Generate a random user ID,
+  const incomingID = generateRandomString();
+
+  // console.log(incomingEmail);
+  // console.log(incomingPassword);
+  // console.log(incomingID);
+
+  //TODO if email exists?
+  //add the user to the user object. 
+  // create new object to add
+  const newUser = {
+    id: incomingID,
+    email: incomingEmail,
+    password: incomingPassword
+  };
+
+  users[incomingID] = newUser;
+
+  console.log(users);
+  // set a user_id cookie containing the user's newly generated ID.
+  const username = request.body.username;
+  console.log("user_id", users[incomingID])
+  response.cookie("user_id", incomingID);
+
+  // Redirect the user to the /urls page.
+  response.redirect('/urls');
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
