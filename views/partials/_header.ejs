@@ -15,7 +15,7 @@
       </div>
     </div>
 
-    <% if(!username){ %>
+    <% if(!user){ %>
     <form class="form-inline" action="/login" method="POST">
       <div class="form-group mb-2">
        
@@ -29,7 +29,7 @@
       <form class="form-inline" action="/logout" method="POST">
         <div class="form-group mb-2">
          
-         <p style="margin: 0px 80px 0px 0px; height: 22px"> Logged In As: <%= username %> </p>
+         <p style="margin: 0px 80px 0px 0px; height: 22px"> Logged In As: <%= user.email %> </p>
          <button type="submit" class="btn btn-outline-dark">Logout</button>
     
         </div>
