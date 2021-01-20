@@ -28,6 +28,7 @@ function generateRandomString() {
 // then add dat to the request under the key body
 
 const bodyParser = require("body-parser");
+const { response } = require('express');
 app.use(bodyParser.urlencoded({extended: true}));
 
 // registers a handler on the root path, "/".
@@ -65,7 +66,6 @@ app.get('/urls/new', (request, response) => {
 app.get("/urls/:shortURL", (request, response) => {
   const templateVars = { username: request.cookies["username"], shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
 
-  
   response.render("urls_show", templateVars);
   // console.log('request.params', request.params)
   // console.log('request.params.shortURL', request.params.shortURL)
@@ -82,6 +82,13 @@ app.get("/u/:shortURL", (request, response) => {
   response.redirect(longURL);
 });
 
+// register 
+app.get('/register', (request, response) => {
+  const templateVars = { username: request.cookies["username"] };
+  // response.send("ok register test")
+  response.render("register_page", templateVars);
+
+})
 
 
 // receives a POST request to /urls it responds with a redirection to 
