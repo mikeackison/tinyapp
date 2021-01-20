@@ -15,16 +15,15 @@
       </div>
     </div>
 
+
+<!--  -->
     <% if(!user){ %>
-    <form class="form-inline" action="/login" method="POST">
-      <div class="form-group mb-2">
-       
-       <!-- name attribute identifies the data we are sending. -->
-       <input class="form-control" type="text" name="username" placeholder="Username" style="width: 250px; margin: 0px 5px 0px 5px">
-       <button type="submit" class="btn btn-outline-dark">Login</button>
-  
-      </div>
-    </form>
+      <div class="navbar-nav">
+        <a class="nav-item nav-link" href="/login">Login</a>
+      <a class="nav-item nav-link" href="/register">Registration</a>
+    </div>
+
+   
     <% } else{ %>
       <form class="form-inline" action="/logout" method="POST">
         <div class="form-group mb-2">
@@ -35,6 +34,8 @@
         </div>
       </form>
       <% } %>
+
+      
 
   </nav>
 </header>
