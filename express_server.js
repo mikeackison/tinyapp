@@ -148,7 +148,7 @@ app.post("/login", (request, response) => {
   let password = request.body.password
 
   if (!emailExists(email)) {
-    response.status(403).send("Email cannot be found")
+    response.status(403).send("Input Error")
   } else {
 
     for (let user in users) {
@@ -156,7 +156,7 @@ app.post("/login", (request, response) => {
         response.cookie("user_id", users[user].id);
         response.redirect('/urls');
       } else {
-        response.status(403).send("Password doesn't match")
+        response.status(403).send("Input Error")
         
       }
     }
