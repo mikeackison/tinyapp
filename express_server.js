@@ -41,9 +41,9 @@ const isFeildBlank = (email, password) => {
 
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "use@ex.com",
+  "u1": {
+    id: "u1",
+    email: "m@a.com",
     password: "12345678"
   },
   "user2RandomID": {
@@ -141,18 +141,20 @@ app.post("/urls/:shortURL/", (request, response) => {
 
 
 
-// login & cookies OLD
+// login updated
 app.post("/login", (request, response) => {
   
   let email = request.body.email
   let password = request.body.password
 
   if (!emailExists(email)) {
-    response.status(400).send("Email doesn't exist")
+    response.status(403).send("Email cannot be found")
   } else {
 
     for (let user in users) {
-      if (users[user].email === email && users[user].password === password) {
+      if (!users[user].email === email && users[user].password === password) {
+        response.status(403).send("Password doesn't match")
+      } else {
         response.cookie("user_id", users[user].id);
         response.redirect('/urls');
       }
@@ -214,9 +216,6 @@ app.post('/register', (request, response) => {
 
   // console.log(users);
 
-  // set a user_id cookie containing the user's newly generated ID.
-  const username = request.body.username;
-  // console.log("user_id", users[incomingID])
   response.cookie("user_id", incomingID);
 
   // Redirect the user to the /urls page.
