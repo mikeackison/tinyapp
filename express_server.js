@@ -152,11 +152,12 @@ app.post("/login", (request, response) => {
   } else {
 
     for (let user in users) {
-      if (!users[user].email === email && users[user].password === password) {
-        response.status(403).send("Password doesn't match")
-      } else {
+      if (users[user].email === email && users[user].password === password) {
         response.cookie("user_id", users[user].id);
         response.redirect('/urls');
+      } else {
+        response.status(403).send("Password doesn't match")
+        
       }
     }
   }
