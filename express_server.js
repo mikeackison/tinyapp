@@ -2,17 +2,23 @@ const PORT = 8080; //default port
 const express = require('express');
 const morgan = require('morgan');
 const cookieSession = require('cookie-session');
-
 const bodyParser = require("body-parser");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
 const app = express();
 
+const { 
+  generateRandomString, 
+  emailExists, 
+  isFeildBlank, 
+  urlsForUser, 
+  currentUserId 
+} = require('./helpers');
+
 
 app.set("view engine", "ejs");
 app.use(morgan('dev'));
-
 app.use(cookieSession({
   name: 'session',
   keys: ['key1', 'key2']
@@ -29,51 +35,6 @@ const urlDatabase = {
 };
 
 
-// TODO file for helper functions and export
-const generateRandomString = () => {
-  return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
-};
-
-
-const emailExists = (email) => {
-  for (let userId in users) {
-    if (users[userId].email === email) {
-      return true;
-    }
-  }
-};
-
-const isFeildBlank = (email, password) => {
-  if (email === '' || password === '') {
-    return true;
-  }
-};
-
-// Create a function named urlsForUser(id) which returns
-// the URLs where the userID is equal to the id of the currently logged-in user.
-
-const urlsForUser = (id) => {
-  //pass in the id of the current user
-  // create a new object
-  const userUrlDatabase = {};
-
-  for (let url in urlDatabase) {
-    // loop through the urlDatabase object for all the urls
-    if (urlDatabase[url].userID === id) {
-      // if the key[value].userID matches the curerent user id
-      // return all of the matching values (only matching), put the urlDatabase into the new userUrlDatabse
-      userUrlDatabase[url] = urlDatabase[url];
-    }
-  }
-  return userUrlDatabase;
-};
-
-const currentUserId = (request) => {
-  let userID = request.session['user_id'];
-
-  return userID;
-};
-
 const passwordA = "12345678";
 const passwordB = "87654321";
 
@@ -89,7 +50,6 @@ const users = {
     password: bcrypt.hashSync(passwordB, saltRounds)
   }
 };
-
 
 
 // registers a handler on the root path, "/".
@@ -109,13 +69,12 @@ app.get('/hello', (request, response) => {
 // when we call response.render we need to specify the template, and the object of the variables
 // this is server side rendering
 app.get("/urls", (request, response) => {
-  // let userID = request.cookies['user_id'] //remove
   let userID = request.session['user_id'];
 
 
   // function returns a new object with the urls; pass that into templateVars
   const templateVars = {
-    urls: urlsForUser(userID),
+    urls: urlsForUser(userID, urlDatabase),
     user: users[userID]
   };
 
@@ -248,11 +207,13 @@ app.post("/login", (request, response) => {
   let email = request.body.email;
   let password = request.body.password;
 
-  if (!emailExists(email)) {
+  console.log('email', email);
+  console.log('password', password);
+
+  if (!emailExists(email, users)) {
     response.status(403).send("Input Error");
     return;
   }
-
 
   // users[user].password === password
   for (let user in users) {
@@ -305,7 +266,7 @@ app.post('/register', (request, response) => {
 
   if (isFeildBlank(incomingEmail, incomingPassword)) {
     response.status(400).send("Invaild Entry");
-  } else if (emailExists(incomingEmail)) {
+  } else if (emailExists(incomingEmail, users)) {
     response.status(400).send("Invalid Entry");
 
   } else {
@@ -324,7 +285,7 @@ app.post('/register', (request, response) => {
 
     users[incomingID] = newUser;
 
-    console.log(users);
+    // console.log(users);
 
     // response.cookie("user_id", incomingID); //remove
     request.session['user_id'] = incomingID;
