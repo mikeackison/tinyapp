@@ -14,10 +14,12 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
+
 const urlDatabase = {
-  "b2xVn2": "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com"
+  b6UTxQ: { longURL: "https://www.lighthouselabs.ca/", userID: "aJ48lW" },
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
 };
+
 
 // TODO file fo helper functions
 function generateRandomString() {
@@ -41,8 +43,8 @@ const isFeildBlank = (email, password) => {
 
 
 const users = {
-  "u1": {
-    id: "u1",
+  "aJ48lW": {
+    id: "aJ48lW",
     email: "m@a.com",
     password: "12345678"
   },
@@ -80,14 +82,27 @@ app.get("/urls", (request, response) => {
 
 // order matters, needs to be defined BEFORE the next route.
 // routes should be ordered from most specific to least specific.
+
+
+
 app.get('/urls/new', (request, response) => {
-  const templateVars = { user: users[request.cookies['user_id']]};
-  response.render('urls_new', templateVars);
+  let userID = request.cookies['user_id']
+  // console.log(userID)
+
+  // if user is not logged in trying to access url page
+  // redirect to login
+  // we know they are logged in based on the cookies
+  if (userID !== undefined) {
+    const templateVars = { user: users[request.cookies['user_id']]};
+    response.render('urls_new', templateVars);
+  } else {
+    response.redirect("/login")
+  }
 
 });
 
 app.get("/urls/:shortURL", (request, response) => {
-  const templateVars = { user: users[request.cookies['user_id']], shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL] };
+  const templateVars = { user: users[request.cookies['user_id']], shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL].longURL };
 
   response.render("urls_show", templateVars);
   // console.log('request.params', request.params)
@@ -98,20 +113,26 @@ app.get("/urls/:shortURL", (request, response) => {
 app.get("/u/:shortURL", (request, response) => {
   console.log('request.params.shortURL', request.params.shortURL);
 
-  const longURL = urlDatabase[request.params.shortURL];
+  const longURL = urlDatabase[request.params.shortURL].longURL;
 
   response.redirect(longURL);
 });
 
 
+
+
 // receives a POST request to /urls it responds with a redirection to
 // /urls/:shortURL, where shortURL is the random string we generated.
 app.post("/urls", (request, response) => {
-  console.log(request.body);  // Log the POST request body to the console
+  let userID = request.cookies['user_id']
+
+  // console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
 
-  urlDatabase[shortURL] = request.body.longURL;
-  // console.log(urlDatabase);
+  urlDatabase[shortURL] = {longURL: request.body.longURL, userID}
+ 
+
+  console.log(urlDatabase);
   // console.log('request.body.longURL', request.body.longURL)
 
   // need to redirect
