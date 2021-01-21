@@ -44,4 +44,21 @@ const currentUserId = (request) => {
 };
 
 
-module.exports = { generateRandomString, emailExists, isFeildBlank, urlsForUser, currentUserId }
+const getUserByEmail = function(email, database) {
+  // we know that the email is a key value pair inside the object;
+  // the user is the key to the object with the email
+  // loop thorough the object? and match the email?
+  let user;
+  for (let key in database) {
+    if(database[key].email === email) {
+      user = database[key];
+      return user.id; 
+    } 
+  }
+};
+
+
+
+
+
+module.exports = { generateRandomString, emailExists, isFeildBlank, urlsForUser, currentUserId, getUserByEmail }
