@@ -25,6 +25,17 @@
         </tr>
       </thead>
       <tbody>
+
+        <!-- if the user is not logged in, they see a message to log in or register -->
+        <% if(!user){ %>
+
+          <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title">Please Log In or Register</h5>
+
+            </div>
+
+       <% } else{ %>
         <!-- loop through data with EJS -->
         <% for(let url in urls) { %>
           <tr>
@@ -48,6 +59,9 @@
 
           </tr>
         <% } %>
+      <% } %>
+
+
       </tbody>
     </table>
   </main>
