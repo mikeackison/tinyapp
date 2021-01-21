@@ -1,8 +1,10 @@
-const PORT = 8080; //default port *be sure old test is not running anymore!
+const PORT = 8080; //default port
 const express = require('express');
 const morgan = require('morgan');
 const cookieParser = require('cookie-parser');
 const bodyParser = require("body-parser");
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 const app = express();
 
@@ -22,7 +24,7 @@ const urlDatabase = {
 };
 
 
-// TODO file fo helper functions
+// TODO file for helper functions and export
 function generateRandomString() {
   return Math.floor((1 + Math.random()) * 0x1000000).toString(16).substring(1);
 }
@@ -59,6 +61,11 @@ const urlsForUser = (id) => {
     } 
   }
   return userUrlDatabase
+}
+
+const currentUserId =(request) => {
+  let userID = request.cookies['user_id'];
+  return userID;
 }
 
 
@@ -114,7 +121,7 @@ app.get("/urls", (request, response) => {
 
 
 app.get('/urls/new', (request, response) => {
-  let userID = request.cookies['user_id']
+  const userID = currentUserId(request);
   // console.log(userID)
 
   // if user is not logged in trying to access url page
@@ -129,25 +136,37 @@ app.get('/urls/new', (request, response) => {
 
 });
 
+
+// TODO - Fix users seeing /urls/:shortURL that aren't theirs
+
+// errors, then return?
+
+
 app.get("/urls/:shortURL", (request, response) => {
+  const userID = currentUserId(request);
+  const shortURLUserID = urlDatabase[request.params.shortURL].userID;
 
-  let currentUserId = users[request.cookies['user_id']]
-  console.log(currentUserId.id)
 
-
- 
+  // if the user is logged in they can see their short urls, and not others
+  // if not logged in, asme as being another user (or redirect to login)
+  // short url.user id === userid
+  
   const templateVars = { 
-    user: users[request.cookies['user_id']], 
+    user: users[userID], 
     shortURL: request.params.shortURL, 
     longURL: urlDatabase[request.params.shortURL].longURL 
   };
 
-  console.log(templateVars)
-  response.render("urls_show", templateVars);
-  // console.log('request.params', request.params)
-  // console.log('request.params.shortURL', request.params.shortURL)
-  // console.log('urlDatabase[request.params.shortURL]', urlDatabase[request.params.shortURL])
-  
+  // if user id is exactly equal to the shortURL id
+ if(userID === shortURLUserID) {
+  //  render the page with the short url ID
+   response.render("urls_show", templateVars);
+   return
+  //  otherwsie, redierct to users list of urls
+ } else {
+  response.redirect('/urls/');
+  return
+ }
   
 });
 
@@ -165,7 +184,7 @@ app.get("/u/:shortURL", (request, response) => {
 // receives a POST request to /urls it responds with a redirection to
 // /urls/:shortURL, where shortURL is the random string we generated.
 app.post("/urls", (request, response) => {
-  let userID = request.cookies['user_id']
+  const userID = currentUserId(request);
 
   // console.log(request.body);  // Log the POST request body to the console
   let shortURL = generateRandomString();
@@ -180,10 +199,12 @@ app.post("/urls", (request, response) => {
   response.redirect(`/urls/${shortURL}`);
 });
 
-
+// TODO: fix others being able to delete urls that aren't theirs
+// if they are logged in they can dlete otherwise they cannoot delete those (or even see"
+// errors, then return?
 // to delete
 app.post("/urls/:shortURL/delete", (request, response) => {
-  let userID = request.cookies['user_id']
+  const userID = currentUserId(request);
   const urlToDelete = request.params.shortURL;
 
   if (urlDatabase[urlToDelete].userID === userID) {
@@ -196,7 +217,7 @@ app.post("/urls/:shortURL/delete", (request, response) => {
 
 // update edit
 app.post("/urls/:shortURL/", (request, response) => {
-  let userID = request.cookies['user_id']
+  const userID = currentUserId(request);
 
 
   const shortURL = request.params.shortURL;
@@ -262,6 +283,8 @@ app.post('/register', (request, response) => {
 
   // form sends back body to parse
   const incomingEmail = request.body.email;
+
+  // hash the password
   const incomingPassword = request.body.password;
   // Generate a random user ID,
   const incomingID = generateRandomString();
