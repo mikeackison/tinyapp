@@ -96,9 +96,11 @@ app.get('/hello', (request, response) => {
 app.get("/urls", (request, response) => {
   let userID = request.cookies['user_id']
   
+
+  // function returns a new object with the urls; pass that into templateVars
   const templateVars = { 
     urls: urlsForUser(userID),
-    user: users[request.cookies['user_id']]
+    user: users[userID]
   };
 
   response.render("urls_index", templateVars);
@@ -192,11 +194,16 @@ app.post("/urls/:shortURL/delete", (request, response) => {
 });
 
 
-// update
+// update edit
 app.post("/urls/:shortURL/", (request, response) => {
+  let userID = request.cookies['user_id']
+
+
   const shortURL = request.params.shortURL;
 
-  urlDatabase[shortURL] = request.body.longURL;
+  // urlDatabase[shortURL] = request.body.longURL;
+  urlDatabase[shortURL] = {longURL: request.body.longURL, userID}
+
   response.redirect('/urls');
 });
 
