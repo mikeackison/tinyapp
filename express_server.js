@@ -68,17 +68,19 @@ const currentUserId =(request) => {
   return userID;
 }
 
+const passwordA = "12345678"
+const passwordB = "87654321"
 
 const users = {
   "aJ48lW": {
     id: "aJ48lW",
     email: "m@a.com",
-    password: "12345678"
+    password: bcrypt.hashSync(passwordA, saltRounds)
   },
   "494e44": {
     id: "494e44",
     email: "j@b.ca",
-    password: "12345678"
+    password: bcrypt.hashSync(passwordB, saltRounds)
   }
 };
 
@@ -243,8 +245,10 @@ app.post("/login", (request, response) => {
     return
   } 
 
+  
+  // users[user].password === password
     for (let user in users) {
-      if (users[user].email === email && users[user].password === password) {
+      if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
         response.cookie("user_id", users[user].id);
         response.redirect('/urls');
         return
@@ -303,12 +307,13 @@ app.post('/register', (request, response) => {
   const newUser = {
     id: incomingID,
     email: incomingEmail,
-    password: incomingPassword
+    password: bcrypt.hashSync(incomingPassword, saltRounds)
+
   };
 
   users[incomingID] = newUser;
 
-  // console.log(users);
+  console.log(users);
 
   response.cookie("user_id", incomingID);
 
