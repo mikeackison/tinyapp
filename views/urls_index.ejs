@@ -29,8 +29,9 @@
         <% for(let url in urls) { %>
           <tr>
             
-            <td><%= url %></td>
-            <td><%= urls[url] %></td>
+            <!-- <td><%= url %></td> -->
+            <td><a href="<%= urls[url].longURL %>"><%= url %></a></td>
+            <td><%= urls[url].longURL %></td>
 
             <td>
               <!-- needs to take to url_show Use GET not POST-->
