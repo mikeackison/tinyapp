@@ -17,7 +17,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 const urlDatabase = {
   b6UTxQ: { longURL: "https://www.lighthouselabs.ca/", userID: "aJ48lW" },
-  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" }
+  i3BoGr: { longURL: "https://www.google.ca", userID: "aJ48lW" },
+  jfsd43: { longURL: "https://repl.it/", userID: "494e44"}
 };
 
 
@@ -41,6 +42,25 @@ const isFeildBlank = (email, password) => {
   } 
 }
 
+// Create a function named urlsForUser(id) which returns
+// the URLs where the userID is equal to the id of the currently logged-in user.
+
+const urlsForUser = (id) => {
+  //pass in the id of the current user
+  // create a new object
+  const userUrlDatabase = {}
+
+  for (let url in urlDatabase) {
+  // loop through the urlDatabase object for all the urls
+    if(urlDatabase[url].userID === id) {
+  // if the key[value].userID matches the curerent user id
+  // return all of the matching values (only matching), put the urlDatabase into the new userUrlDatabse
+      userUrlDatabase[url] = urlDatabase[url]
+    } 
+  }
+  return userUrlDatabase
+}
+
 
 const users = {
   "aJ48lW": {
@@ -48,10 +68,10 @@ const users = {
     email: "m@a.com",
     password: "12345678"
   },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
+  "494e44": {
+    id: "494e44",
+    email: "j@b.ca",
+    password: "12345678"
   }
 };
 
@@ -74,7 +94,13 @@ app.get('/hello', (request, response) => {
 // when we call response.render we need to specify the template, and the object of the variables
 // this is server side rendering
 app.get("/urls", (request, response) => {
-  const templateVars = { urls: urlDatabase, user: users[request.cookies['user_id']] };
+  let userID = request.cookies['user_id']
+  
+  const templateVars = { 
+    urls: urlsForUser(userID),
+    user: users[request.cookies['user_id']]
+  };
+
   response.render("urls_index", templateVars);
 });
 
@@ -102,16 +128,29 @@ app.get('/urls/new', (request, response) => {
 });
 
 app.get("/urls/:shortURL", (request, response) => {
-  const templateVars = { user: users[request.cookies['user_id']], shortURL: request.params.shortURL, longURL: urlDatabase[request.params.shortURL].longURL };
 
+  let currentUserId = users[request.cookies['user_id']]
+  console.log(currentUserId.id)
+
+
+ 
+  const templateVars = { 
+    user: users[request.cookies['user_id']], 
+    shortURL: request.params.shortURL, 
+    longURL: urlDatabase[request.params.shortURL].longURL 
+  };
+
+  console.log(templateVars)
   response.render("urls_show", templateVars);
   // console.log('request.params', request.params)
   // console.log('request.params.shortURL', request.params.shortURL)
   // console.log('urlDatabase[request.params.shortURL]', urlDatabase[request.params.shortURL])
+  
+  
 });
 
 app.get("/u/:shortURL", (request, response) => {
-  console.log('request.params.shortURL', request.params.shortURL);
+  // console.log('request.params.shortURL', request.params.shortURL);
 
   const longURL = urlDatabase[request.params.shortURL].longURL;
 
@@ -142,11 +181,14 @@ app.post("/urls", (request, response) => {
 
 // to delete
 app.post("/urls/:shortURL/delete", (request, response) => {
-
+  let userID = request.cookies['user_id']
   const urlToDelete = request.params.shortURL;
+
+  if (urlDatabase[urlToDelete].userID === userID) {
   delete urlDatabase[urlToDelete];
+  }
+
   response.redirect('/urls/');
-  // response.send("ok delete test")
 });
 
 
@@ -170,18 +212,18 @@ app.post("/login", (request, response) => {
 
   if (!emailExists(email)) {
     response.status(403).send("Input Error")
-  } else {
+    return
+  } 
 
     for (let user in users) {
       if (users[user].email === email && users[user].password === password) {
         response.cookie("user_id", users[user].id);
         response.redirect('/urls');
-      } else {
-        response.status(403).send("Input Error")
-        
-      }
+        return
+      } 
     }
-  }
+    response.status(403).send("Input Error")
+    return
 });
 
 // login page
