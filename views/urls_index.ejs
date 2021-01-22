@@ -26,15 +26,20 @@
       </thead>
       <tbody>
 
+         
         <!-- if the user is not logged in, they see a message to log in or register -->
         <% if(!user){ %>
-
           <div class="card text-center">
             <div class="card-body">
               <h5 class="card-title">Please Log In or Register</h5>
-
-            </div>
-
+              <!-- <% if (error) { %>
+              <h5><%= error %></h5>
+             <% } %>
+            </div> -->
+           <% } else if (user && error){ %>
+            <div class="card text-center">
+            <div class="card-body">
+              <h5 class="card-title"><%= error %></h5>
        <% } else{ %>
         <!-- loop through data with EJS -->
         <% for(let url in urls) { %>

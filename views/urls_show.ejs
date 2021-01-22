@@ -16,11 +16,13 @@
         <h5 class="card-title">TinyURL for: <%= longURL %></h5>
         <p class="card-text">Short URL: <a href="/u/<%= shortURL %>"><%= shortURL %></a></p>
 
+
         
 
       </div>
 
     <div class="card-footer text-muted">
+      
       <h2> Edit</h2>
 
       <form class="form-inline" style= "display: inline-block" action="/urls/<%= shortURL %>" method="POST">
