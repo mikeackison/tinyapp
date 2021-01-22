@@ -8,12 +8,12 @@ const saltRounds = 10;
 
 const app = express();
 
-const { 
-  generateRandomString, 
-  emailExists, 
-  isFeildBlank, 
-  urlsForUser, 
-  currentUserId 
+const {
+  generateRandomString,
+  emailExists,
+  isFeildBlank,
+  urlsForUser,
+  currentUserId
 } = require('./helpers');
 
 
@@ -54,7 +54,14 @@ const users = {
 
 // registers a handler on the root path, "/".
 app.get('/', (request, response) => {
-  response.send('Hello There!');
+  const userID = currentUserId(request);
+
+  if (userID === undefined) {
+    response.redirect("/login");
+
+  } else {
+    response.redirect("/urls");
+  }
 });
 
 app.get("/urls.json", (request, response) => {
@@ -69,28 +76,23 @@ app.get('/hello', (request, response) => {
 // when we call response.render we need to specify the template, and the object of the variables
 // this is server side rendering
 app.get("/urls", (request, response) => {
-  let userID = request.session['user_id'];
-
+  const userID = currentUserId(request);
 
   // function returns a new object with the urls; pass that into templateVars
   const templateVars = {
     urls: urlsForUser(userID, urlDatabase),
-    user: users[userID]
+    user: users[userID],
+    error: null
   };
 
   response.render("urls_index", templateVars);
 });
 
-
-
 // order matters, needs to be defined BEFORE the next route.
 // routes should be ordered from most specific to least specific.
 
-
-
 app.get('/urls/new', (request, response) => {
   const userID = currentUserId(request);
-  // console.log(userID)
 
   // if user is not logged in trying to access url page
   // redirect to login
@@ -105,35 +107,36 @@ app.get('/urls/new', (request, response) => {
 
 });
 
-
-// TODO - Fix users seeing /urls/:shortURL that aren't theirs
-
-// errors, then return?
-
-
 app.get("/urls/:shortURL", (request, response) => {
   const userID = currentUserId(request);
   const shortURLUserID = urlDatabase[request.params.shortURL].userID;
 
+  const shortURLs = Object.keys(urlDatabase);
+  if (!shortURLs.includes(request.params.shortURL)) {
 
-  // if the user is logged in they can see their short urls, and not others
-  // if not logged in, asme as being another user (or redirect to login)
-  // short url.user id === userid
+    response.render('urls_index', { user: userID, error: "Sorry, you can't see that right now." });
 
-  const templateVars = {
-    user: users[userID],
-    shortURL: request.params.shortURL,
-    longURL: urlDatabase[request.params.shortURL].longURL
-  };
+  } else if (userID !== shortURLUserID) {
+
+    response.render('urls_index', { user: userID, error: "Sorry, you don't have that URL." });
+
+  }
 
   // if user id is exactly equal to the shortURL id
   if (userID === shortURLUserID) {
+    const templateVars = {
+      user: users[userID],
+      shortURL: request.params.shortURL,
+      longURL: urlDatabase[request.params.shortURL].longURL,
+      error: null
+    };
+
     //  render the page with the short url ID
     response.render("urls_show", templateVars);
     return;
     //  otherwsie, redierct to users list of urls
   } else {
-    response.redirect('/urls/');
+    response.render('urls_index', { user: null, error: "Sorry you can 't see that." });
     return;
   }
 
@@ -146,9 +149,6 @@ app.get("/u/:shortURL", (request, response) => {
 
   response.redirect(longURL);
 });
-
-
-
 
 // receives a POST request to /urls it responds with a redirection to
 // /urls/:shortURL, where shortURL is the random string we generated.
@@ -168,10 +168,6 @@ app.post("/urls", (request, response) => {
   response.redirect(`/urls/${shortURL}`);
 });
 
-// TODO: fix others being able to delete urls that aren't theirs
-// if they are logged in they can dlete otherwise they cannoot delete those (or even see"
-// errors, then return?
-// to delete
 app.post("/urls/:shortURL/delete", (request, response) => {
   const userID = currentUserId(request);
   const urlToDelete = request.params.shortURL;
@@ -183,23 +179,17 @@ app.post("/urls/:shortURL/delete", (request, response) => {
   response.redirect('/urls/');
 });
 
-
 // update edit
 app.post("/urls/:shortURL/", (request, response) => {
   const userID = currentUserId(request);
-
-
   const shortURL = request.params.shortURL;
 
   // urlDatabase[shortURL] = request.body.longURL;
   urlDatabase[shortURL] = { longURL: request.body.longURL, userID };
 
-  response.redirect('/urls');
+  response.render('urls_show');
+
 });
-
-
-
-
 
 // login updated
 app.post("/login", (request, response) => {
@@ -207,8 +197,10 @@ app.post("/login", (request, response) => {
   let email = request.body.email;
   let password = request.body.password;
 
-  console.log('email', email);
-  console.log('password', password);
+
+  if (isFeildBlank) {
+    response.status(403).send("Input Err");
+  }
 
   if (!emailExists(email, users)) {
     response.status(403).send("Input Error");
@@ -229,6 +221,12 @@ app.post("/login", (request, response) => {
 
 // login page
 app.get('/login', (request, response) => {
+  const userID = currentUserId(request);
+
+  if (userID) {
+    response.redirect('/urls');
+
+  }
 
 
   const templateVars = { user: users[request.session['user_id']] };
