@@ -109,6 +109,7 @@ app.get('/urls/new', (request, response) => {
 
 app.get("/urls/:shortURL", (request, response) => {
   const userID = currentUserId(request);
+ 
   const shortURLUserID = urlDatabase[request.params.shortURL].userID;
 
   const shortURLs = Object.keys(urlDatabase);
@@ -198,7 +199,7 @@ app.post("/login", (request, response) => {
   let password = request.body.password;
 
 
-  if (isFeildBlank) {
+  if (!isFeildBlank) {
     response.status(403).send("Input Err");
   }
 
