@@ -209,28 +209,13 @@ app.post("/urls/:shortURL/", (request, response) => {
 
 // login updated
 app.post("/login", (request, response) => {
-  const userID = currentUserId(request);
+  // const userID = currentUserId(request);
 
   let email = request.body.email;
   let password = request.body.password;
 
-  if (userID) {
-    console.log("Not Logged In");
-
-    if (!isFieldBlank) {
-      // response.status(403).send("Input Err");
-
-      response.render('login_form', { user: null, error: "Bad username or password" });
-      return;
-    }
-
-    if (!emailExists(email, users)) {
-      response.status(403).send("Input Error");
-      return;
-    }
-  }
-
   // users[user].password === password
+
   for (let user in users) {
     if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
       request.session['user_id'] = users[user].id;
@@ -238,8 +223,9 @@ app.post("/login", (request, response) => {
       return;
     }
   }
-  response.status(403).send("Input Error");
+  response.render('login_form', { user: null, error: "Bad username or password" })
   return;
+
 });
 
 // login page
@@ -287,7 +273,7 @@ app.post('/register', (request, response) => {
     // response.status(400).send("Invaild Entry");
     response.render('register_page', { user: null, error: "Bad username or password" })
   } else if (emailExists(incomingEmail, users)) {
-    response.status(400).send("Invalid Entry");
+    response.render('register_page', { user: null, error: "Bad username or password" });
 
   } else {
 

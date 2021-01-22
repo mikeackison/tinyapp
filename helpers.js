@@ -12,6 +12,7 @@ const emailExists = (email, database) => {
   }
 };
 
+
 const isFieldBlank = (email, password) => {
   if (email === '' || password === '') {
     return true;
