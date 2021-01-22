@@ -39,12 +39,15 @@
          <button type="submit" class="btn btn-primary" style="margin-left: 15px">Submit</button>
 
         </div>
-      </form>
-      <!-- password -->
-     
 
+        <% if (typeof error !== 'undefined') { %>
+          <section>
+          <p>
+            <%= error %>
+          </p>
+        </section>
 
-      </form>
+       <% } %>
 
 
     </main>

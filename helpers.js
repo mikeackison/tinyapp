@@ -12,7 +12,7 @@ const emailExists = (email, database) => {
   }
 };
 
-const isFeildBlank = (email, password) => {
+const isFieldBlank = (email, password) => {
   if (email === '' || password === '') {
     return true;
   }
@@ -53,7 +53,9 @@ const getUserByEmail = function(email, database) {
     if(database[key].email === email) {
       user = database[key];
       return user.id; 
-    } 
+    } else{
+      return undefined
+    }
   }
 };
 
@@ -61,4 +63,4 @@ const getUserByEmail = function(email, database) {
 
 
 
-module.exports = { generateRandomString, emailExists, isFeildBlank, urlsForUser, currentUserId, getUserByEmail }
+module.exports = { generateRandomString, emailExists, isFieldBlank, urlsForUser, currentUserId, getUserByEmail }

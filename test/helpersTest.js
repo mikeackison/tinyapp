@@ -31,3 +31,6 @@ describe('getUserByEmail', function() {
 
 });
 
+
+const result = getUserByEmail('', testUsers )
+console.log(result)

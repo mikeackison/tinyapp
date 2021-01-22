@@ -11,9 +11,10 @@ const app = express();
 const {
   generateRandomString,
   emailExists,
-  isFeildBlank,
+  isFieldBlank,
   urlsForUser,
-  currentUserId
+  currentUserId,
+  getUserByEmail
 } = require('./helpers');
 
 
@@ -84,7 +85,7 @@ app.get("/urls", (request, response) => {
     user: users[userID],
     error: null
   };
-
+  // console.log("template Vars", templateVars);
   response.render("urls_index", templateVars);
 });
 
@@ -109,36 +110,50 @@ app.get('/urls/new', (request, response) => {
 
 app.get("/urls/:shortURL", (request, response) => {
   const userID = currentUserId(request);
- 
-  const shortURLUserID = urlDatabase[request.params.shortURL].userID;
 
-  const shortURLs = Object.keys(urlDatabase);
-  if (!shortURLs.includes(request.params.shortURL)) {
+  if (userID) {
 
-    response.render('urls_index', { user: userID, error: "Sorry, you can't see that right now." });
+    // console.log('user ID', userID)
+    // console.log("this stuff url in browser:", request.params.shortURL)
+    // console.log("this stuff the user ID of the url in browser:", urlDatabase[request.params.shortURL].userID)
+    // const shortURLUserID =urlDatabase[request.params.shortURL].userID
 
-  } else if (userID !== shortURLUserID) {
+    const shortURLs = Object.keys(urlDatabase);
+    if (!shortURLs.includes(request.params.shortURL)) {
 
-    response.render('urls_index', { user: userID, error: "Sorry, you don't have that URL." });
+      response.render('urls_index', { user: userID, error: "Sorry, that's not a real URL." });
 
-  }
+    }
 
-  // if user id is exactly equal to the shortURL id
-  if (userID === shortURLUserID) {
-    const templateVars = {
-      user: users[userID],
-      shortURL: request.params.shortURL,
-      longURL: urlDatabase[request.params.shortURL].longURL,
-      error: null
-    };
+    else if (userID !== urlDatabase[request.params.shortURL].userID) {
 
-    //  render the page with the short url ID
-    response.render("urls_show", templateVars);
-    return;
-    //  otherwsie, redierct to users list of urls
+      response.render('urls_index', { user: users[userID], error: "Sorry, you don't have that URL." });
+
+    }
+
+    // if user id is exactly equal to the shortURL id
+    else if (userID === urlDatabase[request.params.shortURL].userID) {
+      const templateVars = {
+        user: users[userID],
+        shortURL: request.params.shortURL,
+        longURL: urlDatabase[request.params.shortURL].longURL,
+        error: null
+      };
+
+      //  render the page with the short url ID
+      response.render("urls_show", templateVars);
+      return;
+      //  otherwsie, redierct to users list of urls
+    } else {
+      response.render('urls_show', { user: null, error: "Sorry you can 't see that." });
+      return;
+    }
+
   } else {
-    response.render('urls_index', { user: null, error: "Sorry you can 't see that." });
-    return;
+    console.log('You made it here')
+    response.render('urls_index', { user: null, error: "Sorry, that's not a real url." });
+    console.log("NO USER")
+    return
   }
 
 });
@@ -194,18 +209,25 @@ app.post("/urls/:shortURL/", (request, response) => {
 
 // login updated
 app.post("/login", (request, response) => {
+  const userID = currentUserId(request);
 
   let email = request.body.email;
   let password = request.body.password;
 
+  if (userID) {
+    console.log("Not Logged In");
 
-  if (!isFeildBlank) {
-    response.status(403).send("Input Err");
-  }
+    if (!isFieldBlank) {
+      // response.status(403).send("Input Err");
 
-  if (!emailExists(email, users)) {
-    response.status(403).send("Input Error");
-    return;
+      response.render('login_form', { user: null, error: "Bad username or password" });
+      return;
+    }
+
+    if (!emailExists(email, users)) {
+      response.status(403).send("Input Error");
+      return;
+    }
   }
 
   // users[user].password === password
@@ -228,8 +250,6 @@ app.get('/login', (request, response) => {
     response.redirect('/urls');
 
   }
-
-
   const templateVars = { user: users[request.session['user_id']] };
 
   response.render('login_form', templateVars);
@@ -263,8 +283,9 @@ app.post('/register', (request, response) => {
   const incomingID = generateRandomString();
 
 
-  if (isFeildBlank(incomingEmail, incomingPassword)) {
-    response.status(400).send("Invaild Entry");
+  if (isFieldBlank(incomingEmail, incomingPassword)) {
+    // response.status(400).send("Invaild Entry");
+    response.render('register_page', { user: null, error: "Bad username or password" })
   } else if (emailExists(incomingEmail, users)) {
     response.status(400).send("Invalid Entry");
 
