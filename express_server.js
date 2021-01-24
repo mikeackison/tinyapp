@@ -53,7 +53,6 @@ const users = {
 };
 
 
-// registers a handler on the root path, "/".
 app.get('/', (request, response) => {
   const userID = currentUserId(request);
 
@@ -74,8 +73,6 @@ app.get('/hello', (request, response) => {
 });
 
 
-// when we call response.render we need to specify the template, and the object of the variables
-// this is server side rendering
 app.get("/urls", (request, response) => {
   const userID = currentUserId(request);
 
@@ -110,13 +107,9 @@ app.get('/urls/new', (request, response) => {
 
 app.get("/urls/:shortURL", (request, response) => {
   const userID = currentUserId(request);
+  console.log("GET URLS/:SHORTURL")
 
   if (userID) {
-
-    // console.log('user ID', userID)
-    // console.log("this stuff url in browser:", request.params.shortURL)
-    // console.log("this stuff the user ID of the url in browser:", urlDatabase[request.params.shortURL].userID)
-    // const shortURLUserID =urlDatabase[request.params.shortURL].userID
 
     const shortURLs = Object.keys(urlDatabase);
     if (!shortURLs.includes(request.params.shortURL)) {
@@ -138,13 +131,15 @@ app.get("/urls/:shortURL", (request, response) => {
         shortURL: request.params.shortURL,
         longURL: urlDatabase[request.params.shortURL].longURL,
         error: null
+        
       };
 
-      //  render the page with the short url ID
-      response.render("urls_show", templateVars);
-      return;
+        //  render the page with the short url ID
+        response.render("urls_show", templateVars);
+        return;
       //  otherwsie, redierct to users list of urls
     } else {
+      console.log("GOING INTO ELSE STATEMENT")
       response.render('urls_show', { user: null, error: "Sorry you can 't see that." });
       return;
     }
@@ -159,29 +154,31 @@ app.get("/urls/:shortURL", (request, response) => {
 });
 
 app.get("/u/:shortURL", (request, response) => {
+  
   // console.log('request.params.shortURL', request.params.shortURL);
 
   const longURL = urlDatabase[request.params.shortURL].longURL;
+  
 
   response.redirect(longURL);
 });
 
-// receives a POST request to /urls it responds with a redirection to
-// /urls/:shortURL, where shortURL is the random string we generated.
+
 app.post("/urls", (request, response) => {
   const userID = currentUserId(request);
 
-  // console.log(request.body);  // Log the POST request body to the console
+  
+  if(userID !== undefined) {
   let shortURL = generateRandomString();
 
   urlDatabase[shortURL] = { longURL: request.body.longURL, userID };
 
-
-  console.log(urlDatabase);
-  // console.log('request.body.longURL', request.body.longURL)
-
-  // need to redirect
   response.redirect(`/urls/${shortURL}`);
+
+  } else {
+    response.redirect('urls')
+  }
+
 });
 
 app.post("/urls/:shortURL/delete", (request, response) => {
@@ -195,26 +192,26 @@ app.post("/urls/:shortURL/delete", (request, response) => {
   response.redirect('/urls/');
 });
 
-// update edit
+
+// UPDATED and working
 app.post("/urls/:shortURL/", (request, response) => {
   const userID = currentUserId(request);
   const shortURL = request.params.shortURL;
 
-  // urlDatabase[shortURL] = request.body.longURL;
+console.log("USERID", userID)
+  
   urlDatabase[shortURL] = { longURL: request.body.longURL, userID };
 
-  response.render('urls_show');
+  response.redirect('/urls');
+  
 
 });
 
-// login updated
+
 app.post("/login", (request, response) => {
-  // const userID = currentUserId(request);
 
   let email = request.body.email;
   let password = request.body.password;
-
-  // users[user].password === password
 
   for (let user in users) {
     if (users[user].email === email && bcrypt.compareSync(password, users[user].password)) {
@@ -228,7 +225,6 @@ app.post("/login", (request, response) => {
 
 });
 
-// login page
 app.get('/login', (request, response) => {
   const userID = currentUserId(request);
 
@@ -241,7 +237,6 @@ app.get('/login', (request, response) => {
   response.render('login_form', templateVars);
 });
 
-// logout & cookies
 app.post("/logout", (request, response) => {
 
   request.session = null;
@@ -249,7 +244,6 @@ app.post("/logout", (request, response) => {
   response.redirect('/urls');
 });
 
-// register
 app.get('/register', (request, response) => {
   const templateVars = { user: request.user };
   response.render("register_page", templateVars);
@@ -257,30 +251,20 @@ app.get('/register', (request, response) => {
 });
 
 
-// register
-// add a new user object to the global users object.
 app.post('/register', (request, response) => {
 
-  // form sends back body to parse
   const incomingEmail = request.body.email;
 
   const incomingPassword = request.body.password;
-  // Generate a random user ID,
   const incomingID = generateRandomString();
 
 
   if (isFieldBlank(incomingEmail, incomingPassword)) {
-    // response.status(400).send("Invaild Entry");
     response.render('register_page', { user: null, error: "Bad username or password" })
   } else if (emailExists(incomingEmail, users)) {
     response.render('register_page', { user: null, error: "Bad username or password" });
 
   } else {
-
-    //add the user to the user object.
-    // create new object to add
-
-    // hash the password
 
     const newUser = {
       id: incomingID,
@@ -291,12 +275,8 @@ app.post('/register', (request, response) => {
 
     users[incomingID] = newUser;
 
-    // console.log(users);
-
-    // response.cookie("user_id", incomingID); //remove
     request.session['user_id'] = incomingID;
 
-    // Redirect the user to the /urls page.
     response.redirect('/urls');
 
   }
