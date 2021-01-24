@@ -107,7 +107,7 @@ app.get('/urls/new', (request, response) => {
 
 app.get("/urls/:shortURL", (request, response) => {
   const userID = currentUserId(request);
-  console.log("GET URLS/:SHORTURL")
+  console.log("GET URLS/:SHORTURL");
 
   if (userID) {
 
@@ -116,12 +116,9 @@ app.get("/urls/:shortURL", (request, response) => {
 
       response.render('urls_index', { user: userID, error: "Sorry, that's not a real URL." });
 
-    }
-
-    else if (userID !== urlDatabase[request.params.shortURL].userID) {
+    } else if (userID !== urlDatabase[request.params.shortURL].userID) {
 
       response.render('urls_index', { user: users[userID], error: "Sorry, you don't have that URL." });
-
     }
 
     // if user id is exactly equal to the shortURL id
@@ -134,21 +131,21 @@ app.get("/urls/:shortURL", (request, response) => {
         
       };
 
-        //  render the page with the short url ID
-        response.render("urls_show", templateVars);
-        return;
+      //  render the page with the short url ID
+      response.render("urls_show", templateVars);
+      return;
       //  otherwsie, redierct to users list of urls
     } else {
-      console.log("GOING INTO ELSE STATEMENT")
+      console.log("GOING INTO ELSE STATEMENT");
       response.render('urls_show', { user: null, error: "Sorry you can 't see that." });
       return;
     }
 
   } else {
-    console.log('You made it here')
+    console.log('You made it here');
     response.render('urls_index', { user: null, error: "Sorry, that's not a real url." });
-    console.log("NO USER")
-    return
+    console.log("NO USER");
+    return;
   }
 
 });
@@ -168,15 +165,15 @@ app.post("/urls", (request, response) => {
   const userID = currentUserId(request);
 
   
-  if(userID !== undefined) {
-  let shortURL = generateRandomString();
+  if (userID !== undefined) {
+    let shortURL = generateRandomString();
 
-  urlDatabase[shortURL] = { longURL: request.body.longURL, userID };
+    urlDatabase[shortURL] = { longURL: request.body.longURL, userID };
 
-  response.redirect(`/urls/${shortURL}`);
+    response.redirect(`/urls/${shortURL}`);
 
   } else {
-    response.redirect('urls')
+    response.redirect('urls');
   }
 
 });
@@ -198,7 +195,7 @@ app.post("/urls/:shortURL/", (request, response) => {
   const userID = currentUserId(request);
   const shortURL = request.params.shortURL;
 
-console.log("USERID", userID)
+  console.log("USERID", userID);
   
   urlDatabase[shortURL] = { longURL: request.body.longURL, userID };
 
@@ -220,7 +217,7 @@ app.post("/login", (request, response) => {
       return;
     }
   }
-  response.render('login_form', { user: null, error: "Bad username or password" })
+  response.render('login_form', { user: null, error: "Bad username or password" });
   return;
 
 });
@@ -260,7 +257,7 @@ app.post('/register', (request, response) => {
 
 
   if (isFieldBlank(incomingEmail, incomingPassword)) {
-    response.render('register_page', { user: null, error: "Bad username or password" })
+    response.render('register_page', { user: null, error: "Bad username or password" });
   } else if (emailExists(incomingEmail, users)) {
     response.render('register_page', { user: null, error: "Bad username or password" });
 
@@ -278,7 +275,6 @@ app.post('/register', (request, response) => {
     request.session['user_id'] = incomingID;
 
     response.redirect('/urls');
-
   }
 
 });
